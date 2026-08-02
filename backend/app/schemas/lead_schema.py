@@ -10,6 +10,14 @@ class LeadCreate(BaseModel):
     message: Optional[str] = None
 
 
+class LeadUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    company: Optional[str] = None
+    message: Optional[str] = None
+
+
 class LeadResponse(BaseModel):
     id: int
     name: str
