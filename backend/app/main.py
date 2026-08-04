@@ -1,22 +1,14 @@
-from fastapi import FastAPI
+from sqlalchemy.exc import SQLAlchemyError
 
-from app.api.v1.router import router
-from app.core.config import settings
-
-from app.core.database import Base, engine
-from app.models import lead, user
-
-Base.metadata.create_all(bind=engine)
-
-
-app = FastAPI(
-    title=settings.app_name,
-    version=settings.app_version,
-)
-
-app.include_router(router, prefix="/api/v1")
-
-
-@app.get("/")
-def root():
-    return {"message": "Welcome to LeadFlowAI 🚀"}
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        print("=== STARTING DATABASE ===")
+        Base.metadata.create_all(bind=engine)
+        print("=== DATABASE OK ===")
+    except Exception as e:
+        print("=== DATABASE ERROR ===")
+        import traceback
+        traceback.print_exc()
+        raise
+    yield
