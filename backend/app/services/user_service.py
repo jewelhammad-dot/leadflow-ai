@@ -10,11 +10,7 @@ class UserService:
     @staticmethod
     def create_user(db: Session, user: UserCreate):
 
-        print("STEP 1")
-
         hashed_password = AuthService.hash_password(user.password)
-
-        print("STEP 2")
 
         new_user = User(
             name=user.name,
@@ -23,18 +19,13 @@ class UserService:
             is_active=True,
         )
 
-        print("STEP 3")
-
         db.add(new_user)
-
-        print("STEP 4")
-
         db.commit()
-
-        print("STEP 5")
-
         db.refresh(new_user)
 
-        print("STEP 6")
-
         return new_user
+
+    @staticmethod
+    def get_user_by_email(db: Session, email: str):
+
+        return db.query(User).filter(User.email == email).first()
