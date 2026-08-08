@@ -16,9 +16,14 @@ router = APIRouter(
 @router.post("/", response_model=LeadResponse)
 def create_lead(
     lead: LeadCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    return LeadService.create_lead(db, lead)
+    return LeadService.create_lead(
+        db=db,
+        lead=lead,
+        user_id=int(current_user["sub"])
+    )
 
 
 @router.get("/", response_model=list[LeadResponse])
@@ -26,15 +31,23 @@ def get_leads(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    return LeadService.get_leads(db)
+    return LeadService.get_leads(
+        db=db,
+        user_id=int(current_user["sub"])
+    )
 
 
 @router.get("/{lead_id}", response_model=LeadResponse)
 def get_lead_by_id(
     lead_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    lead = LeadService.get_lead_by_id(db, lead_id)
+    lead = LeadService.get_lead_by_id(
+        db=db,
+        lead_id=lead_id,
+        user_id=int(current_user["sub"])
+    )
 
     if not lead:
         raise HTTPException(
@@ -49,9 +62,15 @@ def get_lead_by_id(
 def update_lead(
     lead_id: int,
     lead: LeadUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    updated = LeadService.update_lead(db, lead_id, lead)
+    updated = LeadService.update_lead(
+        db=db,
+        lead_id=lead_id,
+        lead=lead,
+        user_id=int(current_user["sub"])
+    )
 
     if not updated:
         raise HTTPException(
@@ -65,9 +84,14 @@ def update_lead(
 @router.delete("/{lead_id}")
 def delete_lead(
     lead_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
 ):
-    deleted = LeadService.delete_lead(db, lead_id)
+    deleted = LeadService.delete_lead(
+        db=db,
+        lead_id=lead_id,
+        user_id=int(current_user["sub"])
+    )
 
     if not deleted:
         raise HTTPException(
@@ -75,6 +99,4 @@ def delete_lead(
             detail="Lead not found"
         )
 
-    return {
-        "message": "Lead deleted successfully"
-    }
+    return {"message": "Lead deleted successfully"}
