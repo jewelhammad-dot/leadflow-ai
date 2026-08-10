@@ -2,10 +2,10 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.api.v1.router import router
 from app.core.config import settings
 from app.core.database import Base, engine
 from app.models import lead, user
+from app.api.v1.router import router
 
 
 @asynccontextmanager
