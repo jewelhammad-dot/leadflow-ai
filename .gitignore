@@ -33,3 +33,5 @@ temp/
 # OS
 .DS_Store
 Thumbs.db
+# Local temporary files
+/lead_old.txt
