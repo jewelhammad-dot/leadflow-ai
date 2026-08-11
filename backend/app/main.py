@@ -4,7 +4,7 @@ from fastapi import FastAPI
 
 from app.core.config import settings
 from app.core.database import Base, engine
-from app.models import lead, user
+from app.models import lead, user, lead_qualification
 from app.api.v1.router import router
 
 
