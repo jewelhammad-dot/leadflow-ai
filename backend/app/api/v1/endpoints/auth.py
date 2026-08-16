@@ -20,7 +20,13 @@ router = APIRouter(
     status_code=status.HTTP_201_CREATED
 )
 def register(user: UserCreate, db: Session = Depends(get_db)):
-    return UserService.create_user(db, user)
+    try:
+        return UserService.create_user(db, user)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e)
+        )
 
 
 @router.post("/login")

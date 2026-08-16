@@ -4,6 +4,8 @@ from app.core.config import settings
 from app.models.lead_qualification import LeadQualification
 from app.services.lead_service import LeadService
 from app.services.ai.provider_factory import get_ai_provider
+from app.services.webhook_service import WebhookService
+from app.services.email_service import EmailService
 
 
 class QualificationService:
@@ -19,6 +21,9 @@ class QualificationService:
 
         Raises AIProviderError (propagated, uncaught) if the AI provider
         fails. No database row is written in that case.
+
+        After successful persistence, triggers webhook and email notifications.
+        Failures in webhook/email do NOT cause the qualification to fail.
         """
         lead = LeadService.get_lead_by_id(db, lead_id, user_id)
 
@@ -50,7 +55,82 @@ class QualificationService:
         db.commit()
         db.refresh(qualification)
 
+        # Trigger webhook (fire-and-forget, does not raise exceptions)
+        QualificationService._trigger_webhook(
+            lead_id=lead.id,
+            lead_name=lead.name,
+            company=lead.company,
+            email=lead.email,
+            score=result.score,
+            classification=result.classification,
+            action=result.recommended_action,
+        )
+
+        # Trigger email (fire-and-forget, does not raise exceptions)
+        QualificationService._trigger_email(
+            to_email=lead.email,
+            lead_name=lead.name,
+            company=lead.company,
+            status=result.classification,
+            score=result.score,
+            action=result.recommended_action,
+        )
+
         return qualification
+
+    @staticmethod
+    def _trigger_webhook(
+        lead_id: int,
+        lead_name: str,
+        company: str,
+        email: str,
+        score: float,
+        classification: str,
+        action: str,
+    ) -> None:
+        """
+        Fire webhook to n8n after successful qualification.
+        Does not raise exceptions.
+        """
+        try:
+            WebhookService.send_qualification_event(
+                lead_id=lead_id,
+                lead_name=lead_name,
+                company=company,
+                email=email,
+                qualification_score=score,
+                qualification_status=classification,
+                recommended_action=action,
+            )
+        except Exception:
+            # Webhook failure does not fail qualification
+            pass
+
+    @staticmethod
+    def _trigger_email(
+        to_email: str,
+        lead_name: str,
+        company: str,
+        status: str,
+        score: float,
+        action: str,
+    ) -> None:
+        """
+        Send notification email after successful qualification.
+        Does not raise exceptions.
+        """
+        try:
+            EmailService.send_qualification_notification(
+                to_email=to_email,
+                lead_name=lead_name,
+                company=company,
+                status=status,
+                score=score,
+                action=action,
+            )
+        except Exception:
+            # Email failure does not fail qualification
+            pass
 
     @staticmethod
     def get_qualification_history(db: Session, lead_id: int, user_id: int):

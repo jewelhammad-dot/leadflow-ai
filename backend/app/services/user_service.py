@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.models.user import User
 from app.schemas.user_schema import UserCreate
@@ -20,7 +21,11 @@ class UserService:
         )
 
         db.add(new_user)
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:
+            db.rollback()
+            raise ValueError(f"User with email {user.email} already exists")
         db.refresh(new_user)
 
         return new_user
