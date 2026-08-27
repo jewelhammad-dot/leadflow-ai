@@ -34,8 +34,22 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     smtp_from_email: str = ""
 
-    # SendGrid settings
-    sendgrid_api_key: str = ""
+    # --- CORS CONFIGURATION ---
+    # Comma-separated list of allowed origins or '*' for wildcard
+    cors_origins: str = "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
+
+    @property
+    def allowed_cors_origins(self) -> list[str]:
+        if not self.cors_origins:
+            return ["*"]
+        if self.cors_origins.strip() == "*":
+            return ["*"]
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+
+    # --- PUBLIC LEAD INGEST ---
+    public_ingest_enabled: bool = True
+    public_ingest_api_key: str = ""
+    public_ingest_default_user_id: int = 1
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
