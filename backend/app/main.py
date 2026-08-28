@@ -12,8 +12,12 @@ from app.api.v1.router import router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("=== STARTING DATABASE ===")
-    Base.metadata.create_all(bind=engine)
-    print("=== DATABASE OK ===")
+    try:
+        Base.metadata.create_all(bind=engine)
+        print("=== DATABASE OK ===")
+    except Exception as exc:
+        print(f"=== DATABASE INIT WARNING: {exc} ===")
+        print("=== Check that DATABASE_URL environment variable points to a reachable PostgreSQL database ===")
     yield
 
 
