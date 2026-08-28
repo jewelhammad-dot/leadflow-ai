@@ -49,3 +49,18 @@ def test_cors_origins_wildcard_property():
 
     wildcard = Settings(cors_origins="*")
     assert wildcard.allowed_cors_origins == ["*"]
+
+
+def test_cors_production_vercel_origin_allowed(client):
+    """Verify production Vercel origin is allowed for preflight."""
+    response = client.options(
+        "/api/v1/health",
+        headers={
+            "Origin": "https://leadflow-ai-red-sigma.vercel.app",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Authorization,Content-Type",
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "https://leadflow-ai-red-sigma.vercel.app"
+
